@@ -9,6 +9,18 @@ resource "azurerm_resource_group" "rg" {
   }
 }
 
+data "azuread_service_principal" "DevOpsInfrastructure" {
+  display_name = "DevOpsInfrastructure"
+}
+
+resource "azurerm_role_assignment" "rg" {
+  for_each = toset(["Reader", "Network Contributor"])
+
+  scope                = azurerm_resource_group.rg.id
+  role_definition_name = each.key
+  principal_id         = data.azuread_service_principal.DevOpsInfrastructure.object_id
+}
+
 resource "azurerm_dev_center" "devcenter" {
   name                = substr(local.devCenterName, 0, 26)
   location            = azurerm_resource_group.rg.location
